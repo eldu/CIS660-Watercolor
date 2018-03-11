@@ -93,7 +93,7 @@ uniform float gBrickWidth : UNITSSCALE <
     float UIMax = 0.35;
     float UIStep = 0.001;
     string UIName = "Brick Width";
-> = 0.3;
+> = 0.5;
 
 uniform float gBrickHeight : UNITSSCALE <
     string UNITS = "inches";
@@ -162,6 +162,7 @@ attribute brixVertexOutput {
     vec3 WorldEyeVec    : TEXCOORD2;
     vec4 ObjPos    : TEXCOORD3;
     vec4 DCol : COLOR0;
+    vec3 LightDir : TEXCOORD4;
 };
 
 #else
@@ -175,6 +176,7 @@ out vec3 WorldNormal;
 out vec3 WorldEyeVec;
 out vec4 ObjPos;
 out vec4 DCol;
+out vec3 LightDir;
 
 #endif
 #endif
@@ -192,6 +194,9 @@ out vec4 DCol;
 
 void main() 
 {
+    LightDir = gLamp0Dir;
+    
+    
     vec3 Nw = normalize((gWorldITXf * vec4(Normal,0.0)).xyz);
     WorldNormal = Nw;
     float lamb = clamp(dot(Nw,-gLamp0Dir),0.0,1.0);

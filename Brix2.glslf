@@ -138,6 +138,7 @@ attribute brixPixelInput {
     vec3 WorldEyeVec    : TEXCOORD2;
     vec4 ObjPos    : TEXCOORD3;
     vec4 DCol : COLOR0;
+    vec3 LightDir : TEXCOORD4;
 };
 
 /* data output by the fragment shader */
@@ -152,6 +153,7 @@ in vec3 WorldNormal;
 in vec3 WorldEyeVec;
 in vec4 ObjPos;
 in vec4 DCol;
+in vec3 LightDir;
 
 out vec4 colorOut;
 
@@ -171,25 +173,31 @@ out vec4 colorOut;
 
 void main()
 {
-    /*
-    float grout = gGBalance;
-    float v = vec4(texture2D(gStripeSampler,vec2(ObjPos.x,0.5))).x;
-    vec4 dColor1 = mix(gSurfColor1,gSurfColor2,v);
-    v = vec4(texture2D(gStripeSampler,vec2(ObjPos.x*2,grout))).x;
-    dColor1 = mix(gGroutColor,dColor1,v);
-    v = vec4(texture2D(gStripeSampler,vec2(ObjPos.x+0.25,0.5))).x;
-    vec4 dColor2 = mix(gSurfColor1,gSurfColor2,v);
-    v = vec4(texture2D(gStripeSampler,vec2((ObjPos.x+0.25)*2,grout))).x;
-    dColor2 = mix(gGroutColor,dColor2,v);
-    v = vec4(texture2D(gStripeSampler,vec2(ObjPos.y,0.5))).x;
-    vec4 brix = mix(dColor1,dColor2,v);
-    v = vec4(texture2D(gStripeSampler,vec2(ObjPos.y*2,grout))).x;
-    brix = mix(gGroutColor,brix,v);
-    vec4 diff = DCol;
-    colorOut = diff * brix;
-    */
-    vec3 normalColor = (WorldNormal + vec3(1)) / 2.0;
-    colorOut = vec4(normalColor, 1);
+    // TODO
+    // how to get the object's base color?
+    vec3 objColor = vec3(1, 0.1, 0.1);
+
+    // Variables that need to be change for art direction ************
+    vec3 paperColor = vec3(1, 1, 1);
+    
+    // For cangiante
+    float d_a = 1.f;
+    float c = 0.6f;
+    float d = 0.4f;
+    
+    //****************************************************************
+    
+    // Cangiante
+    float Da = clamp(dot(WorldNormal, -LightDir), 0, 1) + (d_a - 1.f);
+    Da = Da / d_a;
+    vec3 Cc = objColor + vec3(Da * c);
+    vec3 Cd = (d * Da * (paperColor - Cc)) + Cc;
+    
+    colorOut = vec4(Cd, 1);
+    //colorOut = vec4(Da * c);
+    
+    //vec3 normalColor = (WorldNormal + vec3(1)) / 2.0;
+    //colorOut = vec4(normalColor, 1);
 }
 
 #endif
