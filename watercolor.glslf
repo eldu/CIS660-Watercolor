@@ -171,6 +171,42 @@ out vec4 colorOut;
 
 #if !HIDE_OGSFX_CODE
 
+// https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+// Copied from 560 slides
+float interpNoise2D(float x, float y) {
+    float intX = floor(x);
+    float fractX = fract(x);
+    float intY = floor(y);
+    float fractY = fract(y);
+    
+    float v1 = rand(vec2(intX, intY));
+    float v2 = rand(vec2(intX + 1, intY));
+    float v3 = rand(vec2(intX, intY + 1));
+    float v4 = rand(vec2(intX + 1, intY + 1));
+    
+    float i1 = mix(v1, v2, fractX);
+    float i2 = mix(v3, v4, fractX);
+    return mix(i1, i2, fractY);
+}
+
+float fbm(float x, float y) {
+   float total = 0;
+   float persistance = 0.5f;
+   int octaves = 4;
+   
+   for (int i = 0; i < octaves; i++) {
+       float freq = pow(2.f, i);
+       float amp = pow(persistance, i);
+       
+       total += interpNoise2D(x * freq, y * freq) * amp;
+   }
+   return total;
+}
+
 void main()
 {
     // TODO
@@ -185,6 +221,9 @@ void main()
     float c = 0.6f;
     float d = 0.4f;
     
+    // For turbulence
+    float ctrl_turb = 0.1;
+    
     //****************************************************************
     
     // Cangiante
@@ -193,8 +232,24 @@ void main()
     vec3 Cc = objColor + vec3(Da * c);
     vec3 Cd = (d * Da * (paperColor - Cc)) + Cc;
     
-    colorOut = vec4(Cd, 1);
-    //colorOut = vec4(Da * c);
+    //colorOut = vec4(Cd, 1);
+    
+    
+    // Turbulence
+    vec3 Ct;
+    ctrl_turb = fbm(ObjPos[0], ObjPos[1]) * 0.3f;
+
+    if (ctrl_turb < 0.5) {
+        Ct[0] = pow(Cd[0], 3 - (4 * ctrl_turb));
+        Ct[1] = pow(Cd[1], 3 - (4 * ctrl_turb));
+        Ct[2] = pow(Cd[2], 3 - (4 * ctrl_turb));
+    } else {
+        Ct = (ctrl_turb - 0.5) * 2 * (paperColor - Cd) + Cd;
+    }
+
+    colorOut = vec4(Ct, 1);
+    
+    //colorOut = vec4(ctrl_turb, ctrl_turb, ctrl_turb, 1);
     
     //vec3 normalColor = (WorldNormal + vec3(1)) / 2.0;
     //colorOut = vec4(normalColor, 1);
