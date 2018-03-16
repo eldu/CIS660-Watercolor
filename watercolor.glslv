@@ -199,13 +199,14 @@ void main()
     
     vec3 Nw = normalize((gWorldITXf * vec4(Normal,0.0)).xyz);
     WorldNormal = Nw;
-    float lamb = clamp(dot(Nw,-gLamp0Dir),0.0,1.0);
+    float lamb = clamp(dot(Nw,-gLamp0Dir),0.0,1.0); 
     DCol = vec4((vec3(lamb) + gAmbiColor).rgb,1);
-    vec4 Po = vec4(Position.xyz,1);
-    vec3 Pw = (gWorldXf*Po).xyz;
-    WorldEyeVec = normalize(gViewIXf[3].xyz - Pw);
-    vec4 hpos = gWvpXf * Po;
-    ObjPos = vec4(UV.y/gBrickWidth,UV.x/gBrickHeight,Po.zw);
+    vec4 Po = vec4(Position.xyz,1); 
+    vec3 Pw = (gWorldXf*Po).xyz; 
+    WorldEyeVec = normalize(gViewIXf[3].xyz - Pw); // Eye vector
+    vec4 hpos = gWvpXf * Po; 
+    
+    ObjPos = Po; // Passed to fragment shader
     gl_Position = hpos;
 }
 
