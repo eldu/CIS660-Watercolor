@@ -278,7 +278,6 @@ float fbm3D(float x, float y, float z) {
     }
 
     return total;
-    //return clamp(total, 0.0, 1.0);
 }
 
 // Copied from 560 slides
@@ -342,7 +341,7 @@ void main()
     
     // Turbulence
     vec3 Ct;
-    ctrl_turb = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]) * 0.3f;
+    ctrl_turb = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]); // * 0.3f;
     //ctrl_turb = fbm(ObjPos[0], ObjPos[1]) * 0.3f;
 
     if (ctrl_turb < 0.5) {
@@ -353,11 +352,13 @@ void main()
         Ct = (ctrl_turb - 0.5) * 2 * (paperColor - Cd) + Cd;
     }
 
-    //colorOut = vec4(Ct, 1);
-    
+    colorOut = vec4(Ct, 1);
     //colorOut = vec4(ObjPos[0], ObjPos[0], ObjPos[0], 1.0);
-    colorOut = vec4(ctrl_turb, ctrl_turb, ctrl_turb, 1.0);
+    //colorOut = vec4(ctrl_turb, ctrl_turb, ctrl_turb, 1.0);
     
+    //float l = length(ObjPos) / 2.0 - 1.0;
+    //colorOut = vec4(l, l, l, 1.0);
+
     //vec3 normalColor = (WorldNormal + vec3(1)) / 2.0;
     //colorOut = vec4(normalColor, 1);
 }

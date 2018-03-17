@@ -191,6 +191,109 @@ out vec3 LightDir;
 //
 
 #if !HIDE_OGSFX_CODE
+#define M_PI 3.14159265
+
+float noise_gen2(float x, float y, float z) {
+    return fract(sin(dot(vec3(x, y, z), vec3(12.9898, 78.233, 43.29179))) * 43758.5453);
+}
+
+// Cosine Interpolation
+float cerp (float a, float b, float x) {
+    float y = x * M_PI;
+    y = (1.0 - cos(y)) * 0.5; // y is inbetween[0, 1]
+    return a * (1.0 - y) + b * y; // map y between a and b
+}
+
+float smoothNoise(float x, float y, float z) {
+    float center = noise_gen2(x, y, z) / 8.0;
+    float adj = (noise_gen2(x + 1., y, z) + noise_gen2(x - 1., y, z)
+               + noise_gen2(x, y + 1., z) + noise_gen2(x, y - 1., z)
+               + noise_gen2(x, y, z + 1.) + noise_gen2(z, y, z - 1.)) / 16.0;
+    float diag = (noise_gen2(x + 1., y + 1., z)
+                + noise_gen2(x + 1., y - 1., z)
+                + noise_gen2(x - 1., y + 1., z)
+                + noise_gen2(x - 1., y - 1., z)
+                + noise_gen2(x + 1., y, z + 1.)
+                + noise_gen2(x + 1., y, z - 1.)
+                + noise_gen2(x - 1., y, z + 1.)
+                + noise_gen2(x - 1., y, z - 1.)
+                + noise_gen2(x, y + 1., z + 1.)
+                + noise_gen2(x, y + 1., z - 1.)
+                + noise_gen2(x, y - 1., z + 1.)
+                + noise_gen2(x, y - 1., z - 1.)) / 32.0;
+    float corners = (noise_gen2(x + 1., y + 1., z + 1.)
+                    + noise_gen2(x + 1., y + 1., z - 1.) 
+                    + noise_gen2(x + 1., y - 1., z + 1.) 
+                    + noise_gen2(x + 1., y - 1., z - 1.) 
+                    + noise_gen2(x - 1., y + 1., z + 1.) 
+                    + noise_gen2(x - 1., y + 1., z - 1.) 
+                    + noise_gen2(x - 1., y - 1., z + 1.) 
+                    + noise_gen2(x - 1., y - 1., z - 1.)) / 64.0;
+        
+    return center + adj + diag + corners;
+}
+
+float interpSmoothNoise3D(float x, float y, float z) {
+    // Get integer and fraction portions of x, y, z
+    float intX = floor(x);
+    float fractX = fract(x);
+    float intY = floor(y);
+    float fractY = fract(y);
+    float intZ = floor(z);
+    float fractZ = fract(z);
+
+
+    //  Point of the cube
+    float c000 = noise_gen2(intX,     intY,     intZ     );
+    float c001 = noise_gen2(intX,     intY,     intZ + 1. );
+    float c010 = noise_gen2(intX,     intY + 1., intZ     );
+    float c011 = noise_gen2(intX,     intY + 1., intZ + 1. );
+    float c100 = noise_gen2(intX + 1., intY,     intZ     );
+    float c101 = noise_gen2(intX + 1., intY,     intZ + 1. );
+    float c110 = noise_gen2(intX + 1., intY + 1., intZ     );
+    float c111 = noise_gen2(intX + 1., intY + 1., intZ + 1. );
+
+    // //  Point of the cube
+    // float c000 = smoothNoise(intX,     intY,     intZ     );
+    // float c001 = smoothNoise(intX,     intY,     intZ + 1. );
+    // float c010 = smoothNoise(intX,     intY + 1., intZ     );
+    // float c011 = smoothNoise(intX,     intY + 1., intZ + 1. );
+    // float c100 = smoothNoise(intX + 1., intY,     intZ     );
+    // float c101 = smoothNoise(intX + 1., intY,     intZ + 1. );
+    // float c110 = smoothNoise(intX + 1., intY + 1., intZ     );
+    // float c111 = smoothNoise(intX + 1., intY + 1., intZ + 1. );
+
+    // Interpolate over X
+    float c00 = cerp(c000, c100, fractX);
+    float c01 = cerp(c001, c101, fractX);
+    float c10 = cerp(c010, c110, fractX);
+    float c11 = cerp(c011, c111, fractX);
+
+    // Interpolate over Y
+    float c0 = cerp(c00, c10, fractY);
+    float c1 = cerp(c01, c11, fractY);
+
+    // Interpolate over Z
+    return cerp(c0, c1, fractZ);
+}
+
+
+
+float fbm3D(float x, float y, float z) {
+    float total = 0.f;
+    float persistance = 0.5f;
+    int octaves = 4;
+
+    for (int i = 0; i < octaves; i++) {
+        float frequency = (i * i);
+        float amplitude = pow(persistance, i);
+
+        total += interpSmoothNoise3D(x * frequency, y * frequency, z * frequency) * amplitude;
+    }
+
+    return total;
+}
+
 
 void main() 
 {
@@ -201,13 +304,19 @@ void main()
     WorldNormal = Nw;
     float lamb = clamp(dot(Nw,-gLamp0Dir),0.0,1.0); 
     DCol = vec4((vec3(lamb) + gAmbiColor).rgb,1);
-    vec4 Po = vec4(Position.xyz,1); 
-    vec3 Pw = (gWorldXf*Po).xyz; 
+
+    // Manipulate P for position
+    vec3 P = Position.xyz;
+    P += Normal * fbm3D(P.x, P.y, P.z);
+
+
+    // Keep this at the bottom of main
+    vec4 Po = vec4(P,1); // Convert vec3 position to a vec4 
+    vec3 Pw = (gWorldXf*Po).xyz;  // Convert to world Position
     WorldEyeVec = normalize(gViewIXf[3].xyz - Pw); // Eye vector
-    vec4 hpos = gWvpXf * Po; 
-    
+
     ObjPos = Po; // Passed to fragment shader
-    gl_Position = hpos;
+    gl_Position = gWvpXf * Po; // Multiply by WorldViewProjection Matrix
 }
 
 #endif
