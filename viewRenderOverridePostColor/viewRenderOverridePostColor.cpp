@@ -50,6 +50,7 @@ ColorPostProcessOverride::ColorPostProcessOverride( const MString & name )
     PostQuadRender* edgeDetectOp = new PostQuadRender( kEdgeDetectPassName, "FilterEdgeDetect", "" );
 
     swirlOp->setEnabled(false); // swirl is disabled by default
+	fishEyeOp->setEnabled(false);
 
     mOperations.insertAfter(MHWRender::MRenderOperation::kStandardSceneName, swirlOp);
     mOperations.insertAfter(kSwirlPassName, fishEyeOp);

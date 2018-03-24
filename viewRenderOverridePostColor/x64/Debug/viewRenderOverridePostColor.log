@@ -1,7 +1,3 @@
-﻿  viewRenderOverridePostColorCmd.cpp
-  viewRenderOverridePostColor.cpp
-  viewRenderOverridePostColorMain.cpp
-  Generating Code...
-     Creating library x64\Debug\viewRenderOverridePostColor.lib and object x64\Debug\viewRenderOverridePostColor.exp
-  viewRenderOverridePostColor.vcxproj -> C:\Program Files\Autodesk\Maya2017\devkit\plug-ins\viewRenderOverridePostColor\x64\Debug\viewRenderOverridePostColor.mll
+﻿  viewRenderOverridePostColor.cpp
+  viewRenderOverridePostColor.vcxproj -> C:\Users\Connie\Desktop\CIS660\Authoring_Tool\CIS660-WatercolorMaya\viewRenderOverridePostColor\x64\Debug\viewRenderOverridePostColor.mll
   viewRenderOverridePostColor.vcxproj -> x64\Debug\viewRenderOverridePostColor.pdb (Full PDB)

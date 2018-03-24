@@ -119,7 +119,7 @@ GLSLShader PS_FilterEdgeDetect
 		float dist = sqrt(sx*sx+sy*sy);
 		if (dist > gThreshold) 
 		{ 
-			colorOut = vec4(0,0,0,1);
+			colorOut = vec4(0,0,1,1);
 		}
 		else
 		{
