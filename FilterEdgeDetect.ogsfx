@@ -137,6 +137,7 @@ GLSLShader PS_FilterEdgeDetect
         
         vec3 diff = totalColor - textureColor;
         float max = maxValue(diff);
+        max =  2 * max;
         
 
         colorOut.r = pow(textureColor.r, max + 1);
