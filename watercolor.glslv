@@ -307,7 +307,7 @@ void main()
 
     // Manipulate P for position
     vec3 P = Position.xyz;
-    P += Normal * fbm3D(P.x, P.y, P.z);
+    P += 0.1 * Normal * fbm3D(P.x, P.y, P.z);
 
 
     // Keep this at the bottom of main

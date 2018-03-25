@@ -267,7 +267,7 @@ float interpSmoothNoise3D(float x, float y, float z) {
 
 float fbm3D(float x, float y, float z) {
     float total = 0.f;
-    float persistance = 0.5f;
+    float persistance = 0.4f;
     int octaves = 4;
 
     for (int i = 0; i < octaves; i++) {
@@ -341,7 +341,7 @@ void main()
     
     // Turbulence
     vec3 Ct;
-    ctrl_turb = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]); // * 0.3f;
+    ctrl_turb = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]) * 0.7f;
     //ctrl_turb = fbm(ObjPos[0], ObjPos[1]) * 0.3f;
 
     if (ctrl_turb < 0.5) {

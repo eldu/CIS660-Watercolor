@@ -28,7 +28,7 @@ uniform sampler2D gInputSamp = sampler_state
 uniform float gThickness = 1.5f;
 
 // The edge detection threshold.
-uniform float gThreshold = 0.2;
+uniform float gThreshold = 1.0;
 
 // Vertex shader input structure.
 attribute VS_INPUT
@@ -69,62 +69,80 @@ GLSLShader PS_FilterEdgeDetect
 	{
 		return dot(c.xyz, vec3(0.33333, 0.33333, 0.33333));
 	}
+    
+    float maxValue(vec3 c) {
+        return max(c.x, max(c.y, c.z));
+    }
 
 	void main()
 	{	
-		vec2 ox = vec2(gThickness/gTargetSize.x,0.0);
-		vec2 oy = vec2(0.0,gThickness/gTargetSize.y);
-		vec2 uv = VSUV;
-		vec2 PP = uv - oy;
-		vec4 CC = texture2D(gInputSamp,PP-ox); float g00 = GetGray(CC);
-		CC = texture2D(gInputSamp,PP);    float g01 = GetGray(CC);
-		CC = texture2D(gInputSamp,PP+ox); float g02 = GetGray(CC);
-		PP = uv;
-		CC = texture2D(gInputSamp,PP-ox); float g10 = GetGray(CC);
-		CC = texture2D(gInputSamp,PP);    float g11 = GetGray(CC);
-		CC = texture2D(gInputSamp,PP+ox); float g12 = GetGray(CC);
-		PP = uv + oy;
-		CC = texture2D(gInputSamp,PP-ox); float g20 = GetGray(CC);
-		CC = texture2D(gInputSamp,PP);    float g21 = GetGray(CC);
-		CC = texture2D(gInputSamp,PP+ox); float g22 = GetGray(CC);
-		float K00 = -1;
-		float K01 = -2;
-		float K02 = -1;
-		float K10 = 0;
-		float K11 = 0;
-		float K12 = 0;
-		float K20 = 1;
-		float K21 = 2;
-		float K22 = 1;
-		float sx = 0;
-		float sy = 0;
-		sx += g00 * K00;
-		sx += g01 * K01;
-		sx += g02 * K02;
-		sx += g10 * K10;
-		sx += g11 * K11;
-		sx += g12 * K12;
-		sx += g20 * K20;
-		sx += g21 * K21;
-		sx += g22 * K22; 
-		sy += g00 * K00;
-		sy += g01 * K10;
-		sy += g02 * K20;
-		sy += g10 * K01;
-		sy += g11 * K11;
-		sy += g12 * K21;
-		sy += g20 * K02;
-		sy += g21 * K12;
-		sy += g22 * K22; 
-		float dist = sqrt(sx*sx+sy*sy);
-		if (dist > gThreshold) 
-		{ 
-			colorOut = vec4(0,0,1,1);
-		}
-		else
-		{
-			colorOut = texture2D(gInputSamp, uv);
-		}
+            
+        // Connie's 560 hw
+        
+        /*
+        // sigma = 20, kernel size = 5
+        float gaussian[6];
+        gaussian[0] = 0.043272;
+        gaussian[1] = 0.042418;
+        gaussian[2] = 0.041581;
+        gaussian[3] = 0.039956;
+        gaussian[4] = 0.039167;
+        gaussian[5] = 0.036894;
+        */
+        
+        // sigma = 1, kernel size = 5
+        float gaussian[6];
+        gaussian[0] = 0.150342;
+        gaussian[1] = 0.094907;
+        gaussian[2] = 0.059912;
+        gaussian[3] = 0.023792;
+        gaussian[4] = 0.015019;
+        gaussian[5] = 0.003765;
+
+        // Where the pixel is in the rendered texture between [0, 1]
+        vec2 pixelPosition = VSUV;
+        float thick = 5.f;
+        float dX = thick/gTargetSize.x;
+        float dY = thick/gTargetSize.y;
+
+        float epsilon = 0.00001;
+        vec3 totalColor = vec3(0, 0, 0);
+        float weight;
+        vec3 tempColor;
+        for (int i = -2; i <= 2; i++) {
+            for (int j = -2; j <= 2; j++) {
+                float dist = length(vec2(i, j));
+                if (dist < epsilon) {
+                    weight = gaussian[0];
+                } else if (dist - 1 < epsilon) {
+                    weight = gaussian[1];
+                } else if (dist - 1.4142 < epsilon) {
+                    weight = gaussian[2];
+                } else if (dist - 2 < epsilon) {
+                    weight = gaussian[3];
+                } else if (dist - 2.2361 < epsilon) {
+                    weight = gaussian[4];
+                } else {
+                    weight = gaussian[5];
+                }
+                vec2 coord = pixelPosition + vec2(i * dX, j * dY);
+                coord[0] = clamp(coord[0], 0, 1);
+                coord[1] = clamp(coord[1], 0, 1);
+                tempColor = texture2D(gInputSamp, coord).rgb;
+                totalColor += tempColor * weight;
+            }
+        }
+
+        vec3 textureColor = texture2D(gInputSamp, pixelPosition).rgb;
+        
+        vec3 diff = totalColor - textureColor;
+        float max = maxValue(diff);
+        
+
+        colorOut.r = pow(textureColor.r, max + 1);
+        colorOut.g = pow(textureColor.g, max + 1);
+        colorOut.b = pow(textureColor.b, max + 1);
+        colorOut.a = 1;
 	}
 }
 
