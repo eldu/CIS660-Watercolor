@@ -86,23 +86,23 @@ uniform vec3 gAmbiColor : AMBIENT <
     string UIWidget = "Color";
 > = {0.17f,0.17f,0.17f};
 
-uniform float gBrickWidth : UNITSSCALE <
-    string UNITS = "inches";
-    string UIWidget = "slider";
-    float UIMin = 0.0;
-    float UIMax = 0.35;
-    float UIStep = 0.001;
-    string UIName = "Brick Width";
-> = 0.5;
+// uniform float gBrickWidth : UNITSSCALE <
+//     string UNITS = "inches";
+//     string UIWidget = "slider";
+//     float UIMin = 0.0;
+//     float UIMax = 0.35;
+//     float UIStep = 0.001;
+//     string UIName = "Brick Width";
+// > = 0.5;
 
-uniform float gBrickHeight : UNITSSCALE <
-    string UNITS = "inches";
-    string UIWidget = "slider";
-    float UIMin = 0.0;
-    float UIMax = 0.35;
-    float UIStep = 0.001;
-    string UIName = "Brick Height";
-> = 0.12;
+// uniform float gBrickHeight : UNITSSCALE <
+//     string UNITS = "inches";
+//     string UIWidget = "slider";
+//     float UIMin = 0.0;
+//     float UIMax = 0.35;
+//     float UIStep = 0.001;
+//     string UIName = "Brick Height";
+// > = 0.12;
 
 #else
 
@@ -308,7 +308,6 @@ void main()
     // Manipulate P for position
     vec3 P = Position.xyz;
     P += 0.1 * Normal * fbm3D(P.x, P.y, P.z);
-
 
     // Keep this at the bottom of main
     vec4 Po = vec4(P,1); // Convert vec3 position to a vec4 

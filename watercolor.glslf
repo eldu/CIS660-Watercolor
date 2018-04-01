@@ -55,66 +55,56 @@ To learn more about shading, shaders, and to bounce ideas off other shader
 
 #if !HIDE_OGSFX_UNIFORMS
 
-uniform vec4 gSurfColor1
+uniform vec4 gPaperColor
 #if OGSFX
 	<
-    string UIName = "Brick 1";
+    string UIName = "Paper Color";
 	string UIWidget = "Color";
-> = {0.9, 0.5, 0.0, 1.0f};
+> = {1.0, 1.0, 1.0, 1.0f};
 #else
-   = vec4(0.9, 0.5, 0.0, 1.0);
+   = vec4(1.0, 1.0, 1.0, 1.0);
 #endif
 
-uniform vec4 gSurfColor2
+uniform vec4 gObjectColor
 #if OGSFX
 <
-    string UIName = "Brick 2";
+    string UIName = "Object Color";
 	string UIWidget = "Color";
-> = {0.8, 0.48, 0.15, 1.0f};
+> = {1.0, 0.1, 0.1, 1.0f};
 #else
-   = vec4(0.8, 0.48, 0.15, 1.0f);
+   = vec4(1.0, 0.1, 0.1, 1.0);
 #endif
 
-uniform vec4 gGroutColor
-#if OGSFX
-<
-    string UIName = "Grouting";
-	string UIWidget = "Color";
-> = {0.8f, 0.75f, 0.75f, 1.0f};
-#else
-   = vec4(0.7,-0.7,-0.7, 1.0);
-#endif
-
-uniform float gGBalance
+uniform float ctrl_turb
 #if OGSFX
 <
     string UIWidget = "slider";
     float UIMin = 0.01;
-    float UIMax = 0.35;
+    float UIMax = 1.0;
     float UIStep = 0.01;
-    string UIName = "Grout::Brick Ratio";
+    string UIName = "Turbulence";
 >
 #endif
-	= 0.1;
+	= 0.7;
 	
-// Defining textures is only necessary in OGSFX since it 
-// can be assigned automatically to a sampler
-#if OGSFX
-uniform texture2D gStripeTexture <
-    string ResourceName = "aa_stripe.dds";
-    string ResourceType = "2D";
-    // string UIWidget = "None";
-    string UIDesc = "Special Mipped Stripe";
->;
-#endif
+// // Defining textures is only necessary in OGSFX since it 
+// // can be assigned automatically to a sampler
+// #if OGSFX
+// uniform texture2D gStripeTexture <
+//     string ResourceName = "aa_stripe.dds";
+//     string ResourceType = "2D";
+//     // string UIWidget = "None";
+//     string UIDesc = "Special Mipped Stripe";
+// >;
+// #endif
 
-uniform sampler2D gStripeSampler
-#if OGSFX
-	= sampler_state {
-	Texture = <gStripeTexture>;
-}
-#endif
-	;
+// uniform sampler2D gStripeSampler
+// #if OGSFX
+// 	= sampler_state {
+// 	Texture = <gStripeTexture>;
+// }
+// #endif
+// 	;
 
 #endif
 
@@ -313,54 +303,35 @@ float fbm(float x, float y) {
 
 void main()
 {
-    // TODO
-    // how to get the object's base color?
-    vec3 objColor = vec3(1, 0.1, 0.1);
-
-    // Variables that need to be change for art direction ************
-    vec3 paperColor = vec3(1, 1, 1);
-    
     // For cangiante
     float d_a = 1.f;
     float c = 0.6f;
     float d = 0.4f;
-    
-    // For turbulence
-    float ctrl_turb = 0.1;
     
     //****************************************************************
     
     // Cangiante
     float Da = clamp(dot(WorldNormal, -LightDir), 0, 1) + (d_a - 1.f);
     Da = Da / d_a;
-    vec3 Cc = objColor + vec3(Da * c);
-    vec3 Cd = (d * Da * (paperColor - Cc)) + Cc;
+    vec3 Cc = gObjectColor.xyz + vec3(Da * c);
+    vec3 Cd = (d * Da * (gPaperColor.xyz - Cc)) + Cc;
     
     //colorOut = vec4(Cd, 1);
     
     
     // Turbulence
     vec3 Ct;
-    ctrl_turb = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]) * 0.7f;
-    //ctrl_turb = fbm(ObjPos[0], ObjPos[1]) * 0.3f;
+    float turbulence = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]) * ctrl_turb;
 
-    if (ctrl_turb < 0.5) {
-        Ct[0] = pow(Cd[0], 3 - (4 * ctrl_turb));
-        Ct[1] = pow(Cd[1], 3 - (4 * ctrl_turb));
-        Ct[2] = pow(Cd[2], 3 - (4 * ctrl_turb));
+    if (turbulence < 0.5) {
+        Ct[0] = pow(Cd[0], 3 - (4 * turbulence));
+        Ct[1] = pow(Cd[1], 3 - (4 * turbulence));
+        Ct[2] = pow(Cd[2], 3 - (4 * turbulence));
     } else {
-        Ct = (ctrl_turb - 0.5) * 2 * (paperColor - Cd) + Cd;
+        Ct = (turbulence - 0.5) * 2 * (gPaperColor.xyz - Cd) + Cd;
     }
 
-    colorOut = vec4(Ct, 1);
-    //colorOut = vec4(ObjPos[0], ObjPos[0], ObjPos[0], 1.0);
-    //colorOut = vec4(ctrl_turb, ctrl_turb, ctrl_turb, 1.0);
-    
-    //float l = length(ObjPos) / 2.0 - 1.0;
-    //colorOut = vec4(l, l, l, 1.0);
-
-    //vec3 normalColor = (WorldNormal + vec3(1)) / 2.0;
-    //colorOut = vec4(normalColor, 1);
+    colorOut = vec4(Ct, 1.0);
 }
 
 #endif
