@@ -58,6 +58,7 @@ To learn more about shading, shaders, and to bounce ideas off other shader
 uniform vec4 gPaperColor
 #if OGSFX
 	<
+    string Object = "Watercolor";
     string UIName = "Paper Color";
 	string UIWidget = "Color";
 > = {1.0, 1.0, 1.0, 1.0f};
@@ -86,25 +87,53 @@ uniform float ctrl_turb
 >
 #endif
 	= 0.7;
-	
-// // Defining textures is only necessary in OGSFX since it 
-// // can be assigned automatically to a sampler
-// #if OGSFX
-// uniform texture2D gStripeTexture <
-//     string ResourceName = "aa_stripe.dds";
-//     string ResourceType = "2D";
-//     // string UIWidget = "None";
-//     string UIDesc = "Special Mipped Stripe";
-// >;
-// #endif
+    
+uniform bool useTextureColor
+<
+	string UIName = "Use Texture Color?";
+	int UIOrder = 20;
+> = false;
 
-// uniform sampler2D gStripeSampler
-// #if OGSFX
-// 	= sampler_state {
-// 	Texture = <gStripeTexture>;
-// }
-// #endif
-// 	;
+uniform bool useTextureTurbulence
+<
+	string UIName = "Use Texture Turbulence?";
+	int UIOrder = 20;
+> = false;
+	
+// Defining textures is only necessary in OGSFX since it 
+// can be assigned automatically to a sampler
+#if OGSFX
+uniform texture2D objectTexture <
+    //string ResourceName = "test_texture.png";
+    string ResourceType = "2D";
+    // string UIWidget = "None";
+    //string UIDesc = "Special Mipped Stripe";
+    string UIName = "Object Texture";
+>;
+#endif
+
+uniform sampler2D gObjectTextureSampler
+#if OGSFX
+	= sampler_state {
+	Texture = <objectTexture>;
+}
+#endif
+	;
+    
+#if OGSFX
+uniform texture2D turbulenceTexture <
+    string ResourceType = "2D";
+    string UIName = "Turbulence Texture";
+>;
+#endif
+
+uniform sampler2D gTurbulenceTextureSampler
+#if OGSFX
+	= sampler_state {
+	Texture = <turbulenceTexture>;
+}
+#endif
+	;
 
 #endif
 
@@ -129,6 +158,7 @@ attribute brixPixelInput {
     vec4 ObjPos    : TEXCOORD3;
     vec4 DCol : COLOR0;
     vec3 LightDir : TEXCOORD4;
+    vec2 VSUV: TEXCOORD5;
 };
 
 /* data output by the fragment shader */
@@ -144,6 +174,7 @@ in vec3 WorldEyeVec;
 in vec4 ObjPos;
 in vec4 DCol;
 in vec3 LightDir;
+in vec2 VSUV;
 
 out vec4 colorOut;
 
@@ -310,10 +341,17 @@ void main()
     
     //****************************************************************
     
+    vec4 objectColor;
+    if (useTextureColor) {
+        objectColor = texture2D(gObjectTextureSampler, VSUV).rgba;
+    } else {
+        objectColor = gObjectColor;
+    }
+    
     // Cangiante
     float Da = clamp(dot(WorldNormal, -LightDir), 0, 1) + (d_a - 1.f);
     Da = Da / d_a;
-    vec3 Cc = gObjectColor.xyz + vec3(Da * c);
+    vec3 Cc = objectColor.xyz + vec3(Da * c);
     vec3 Cd = (d * Da * (gPaperColor.xyz - Cc)) + Cc;
     
     //colorOut = vec4(Cd, 1);
@@ -321,7 +359,13 @@ void main()
     
     // Turbulence
     vec3 Ct;
-    float turbulence = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]) * ctrl_turb;
+    float turbulence;
+    
+    if (useTextureTurbulence) {
+        turbulence = texture2D(gTurbulenceTextureSampler, VSUV).r;
+    } else {
+        turbulence = fbm3D(ObjPos[0], ObjPos[1], ObjPos[2]) * ctrl_turb;
+    }
 
     if (turbulence < 0.5) {
         Ct[0] = pow(Cd[0], 3 - (4 * turbulence));
@@ -332,6 +376,8 @@ void main()
     }
 
     colorOut = vec4(Ct, 1.0);
+    
+    //colorOut = texture2D(gStripeSampler, VSUV).rgba;
 }
 
 #endif

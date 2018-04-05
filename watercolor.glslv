@@ -163,6 +163,7 @@ attribute brixVertexOutput {
     vec4 ObjPos    : TEXCOORD3;
     vec4 DCol : COLOR0;
     vec3 LightDir : TEXCOORD4;
+    vec2 VSUV        : TEXCOORD5;
 };
 
 #else
@@ -177,6 +178,7 @@ out vec3 WorldEyeVec;
 out vec4 ObjPos;
 out vec4 DCol;
 out vec3 LightDir;
+out vec2 VSUV;
 
 #endif
 #endif
@@ -298,6 +300,8 @@ float fbm3D(float x, float y, float z) {
 void main() 
 {
     LightDir = gLamp0Dir;
+    
+    VSUV = UV;
     
     
     vec3 Nw = normalize((gWorldITXf * vec4(Normal,0.0)).xyz);
