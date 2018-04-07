@@ -1,0 +1,24 @@
+global proc addPaintAttr() {
+    string $nodes[] = `ls -selection`;
+
+    for ($node in $nodes)
+    {
+    //From each transform node, obtain its shape node and print its name
+    string $shapes[] = `listRelatives -shapes $node`;
+    select $shapes;
+    addAttr -ln "paintAttr" -dataType "doubleArray"; 
+    // Make it paintable 
+    makePaintable "mesh" "paintAttr"; 
+    }
+}
+
+string $showMyMenuCtrl;
+if (`menu -exists $showMyMenuCtrl`) {
+    deleteUI $showMyMenuCtrl;
+}
+
+$showMyMenuCtrl = `menu -p $gMainWindow -to true -l "Watercolor"`;
+
+menuItem -p $showMyMenuCtrl -l "Add Paint Attributes" -c addPaintAttr;
+
+setFocus `paneLayout -query -pane1 viewPanes`;
