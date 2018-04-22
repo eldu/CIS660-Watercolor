@@ -1,0 +1,157 @@
+//**************************************************************************/
+// Copyright 2014 Autodesk, Inc.
+// All rights reserved.
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+//**************************************************************************/
+
+// World-view-projection transformation.
+uniform mat4 gWVPXf : WorldViewProjection;
+
+// Target size.
+uniform vec2 gTargetSize : ViewportPixelSize;
+
+// The single filter input, i.e. the image to be filtered.
+uniform texture2D gInputTex : InputTexture;
+
+// Filter input sampler.
+uniform sampler2D gInputSamp = sampler_state
+{
+    Texture = <gInputTex>;
+    //MinFilter = Point;
+    //MagFilter = Point;
+    //MipFilter = Point;
+};
+
+// Amount to bleed
+uniform float gAmount = 0.2;
+
+// Vertex shader input structure.
+attribute VS_INPUT
+{
+    vec4 Pos : POSITION;
+    vec2 UV : TEXCOORD0;
+};
+
+// Vertex shader output structure.
+attribute VS_TO_PS
+{
+    vec2 VSUV : TEXCOORD0;
+};
+
+// Vertex shader.
+GLSLShader VS_ColorBleed
+{
+	void main()
+	{
+        gl_Position = gWVPXf*Pos;
+		
+		// Pass the texture coordinates unchanged.
+		VSUV = UV;
+	}
+}
+
+// Pixel shader output structure.
+attribute pixelOut
+{
+    vec4 colorOut: COLOR0;
+}
+
+// Pixel shader.
+GLSLShader PS_ColorBleed
+{
+	// Gets the grayscale value of a color, i.e. the average of the RGB components.
+	float GetGray(vec4 c)
+	{
+		return dot(c.xyz, vec3(0.33333, 0.33333, 0.33333));
+	}
+    
+    float maxValue(vec3 c) {
+        return max(c.x, max(c.y, c.z));
+    }
+
+	void main()
+	{	
+        // Test pass
+        //colorOut = vec4(1.0, 1.0, 0.0, 1.0); // Renders the whole screen yellow
+
+        // Filter pass, Isolates all of the bright parts of the screen
+        float u_amount = 0.8;
+        vec2 pixelPosition = VSUV;
+        
+        vec3 textureColor = texture2D(gInputSamp, pixelPosition).rgb;
+        float gray = dot(textureColor.rgb, vec3(0.299, 0.587, 0.114));
+        //colorOut = vec4((1.0 - step(gray, u_amount)) * textureColor, 1.0);
+
+        colorOut = vec4((1.0 - step(gray, 1.0 - gAmount)) * textureColor, 1.0);
+
+        // TODO: Copy the Gaussian blur stuff into a separate pass
+
+        // float radius = 50.0;
+        // float blur = radius / (gTargetSize.x * gTargetSize.y);
+        // float gaussian[5];
+        // gaussian[0] = 0.0162162162;
+        // gaussian[1] = 0.0540540541;
+        // gaussian[2] = 0.1216216216;
+        // gaussian[3] = 0.1945945946;
+        // gaussian[4] = 0.2270270270;
+
+        // // Where the pixel is in the rendered texture between [0, 1]
+        // vec2 pixelPosition = VSUV;
+        // float thick = 5.f;
+        // float dX = thick/gTargetSize.x;
+        // float dY = thick/gTargetSize.y;
+
+        // float epsilon = 0.00001;
+        // vec3 totalColor = vec3(0, 0, 0);
+        // float weight;
+        // vec3 tempColor;
+        // for (int i = -2; i <= 2; i++) {
+        //     for (int j = -2; j <= 2; j++) {
+        //         float dist = length(vec2(i, j));
+        //         if (dist < epsilon) {
+        //             weight = gaussian[0];
+        //         } else if (dist - 1 < epsilon) {
+        //             weight = gaussian[1];
+        //         } else if (dist - 1.4142 < epsilon) {
+        //             weight = gaussian[2];
+        //         } else if (dist - 2 < epsilon) {
+        //             weight = gaussian[3];
+        //         } else if (dist - 2.2361 < epsilon) {
+        //             weight = gaussian[4];
+        //         } else {
+        //             weight = gaussian[5];
+        //         }
+        //         vec2 coord = pixelPosition + vec2(i * dX, j * dY);
+        //         coord[0] = clamp(coord[0], 0, 1);
+        //         coord[1] = clamp(coord[1], 0, 1);
+        //         tempColor = texture2D(gInputSamp, coord).rgb;
+        //         totalColor += tempColor * weight;
+        //     }
+        // }
+
+        // vec3 textureColor = texture2D(gInputSamp, pixelPosition).rgb;
+        
+        // vec3 diff = totalColor - textureColor;
+        // float max = maxValue(diff);
+        // max =  2 * max;
+        
+
+        // colorOut.r = pow(textureColor.r, max + 1);
+        // colorOut.g = pow(textureColor.g, max + 1);
+        // colorOut.b = pow(textureColor.b, max + 1);
+        // colorOut.a = 1;
+	}
+}
+
+// The main technique.
+technique Main
+{
+    pass p0
+    {
+        VertexShader (in VS_INPUT, out VS_TO_PS) = VS_ColorBleed;
+        PixelShader (in VS_TO_PS, out pixelOut) = PS_ColorBleed;
+    }
+}
+

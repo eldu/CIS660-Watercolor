@@ -35,8 +35,8 @@ class ColorPostProcessOverride : public MHWRender::MRenderOverride
 {
 public:
     // operation names
-    static const MString kSwirlPassName;
-    static const MString kFishEyePassName;
+    //static const MString kSwirlPassName;
+    static const MString kColorBleedPassName;
     static const MString kEdgeDetectPassName;
 
 	ColorPostProcessOverride( const MString & name );

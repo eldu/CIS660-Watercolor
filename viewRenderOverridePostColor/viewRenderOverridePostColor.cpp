@@ -8,9 +8,10 @@
 #include "viewRenderOverridePostColor.h"
 #include <maya/MShaderManager.h>
 
-const MString ColorPostProcessOverride::kSwirlPassName = "ColorPostProcessOverride_Swirl";
-const MString ColorPostProcessOverride::kFishEyePassName = "ColorPostProcessOverride_FishEye";
+//const MString ColorPostProcessOverride::kSwirlPassName = "ColorPostProcessOverride_Swirl";
 const MString ColorPostProcessOverride::kEdgeDetectPassName = "ColorPostProcessOverride_EdgeDetect";
+const MString ColorPostProcessOverride::kColorBleedPassName = "ColorPostProcessOverride_ColorBleed";
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -45,16 +46,16 @@ ColorPostProcessOverride::ColorPostProcessOverride( const MString & name )
     // Create a new set of operations as required
     MHWRender::MRenderer::theRenderer()->getStandardViewportOperations(mOperations);
 
-    PostQuadRender* swirlOp = new PostQuadRender( kSwirlPassName, "FilterSwirl", "" );
-    PostQuadRender* fishEyeOp = new PostQuadRender( kFishEyePassName, "FilterFishEye", "" );
+    //PostQuadRender* swirlOp = new PostQuadRender( kSwirlPassName, "FilterSwirl", "" );
+    
     PostQuadRender* edgeDetectOp = new PostQuadRender( kEdgeDetectPassName, "FilterEdgeDetect", "" );
+	PostQuadRender* colorBleedOp = new PostQuadRender( kColorBleedPassName, "FilterColorBleed", "" );
 
-    swirlOp->setEnabled(false); // swirl is disabled by default
-	fishEyeOp->setEnabled(false);
+    //swirlOp->setEnabled(false); // swirl is disabled by default
+	//fishEyeOp->setEnabled(false);
 
-    mOperations.insertAfter(MHWRender::MRenderOperation::kStandardSceneName, swirlOp);
-    mOperations.insertAfter(kSwirlPassName, fishEyeOp);
-    mOperations.insertAfter(kFishEyePassName, edgeDetectOp);
+    mOperations.insertAfter(MHWRender::MRenderOperation::kStandardSceneName, edgeDetectOp);
+    mOperations.insertAfter(kEdgeDetectPassName, colorBleedOp);
 }
 
 
@@ -187,6 +188,15 @@ PostQuadRender::shader()
 			if (status != MStatus::kSuccess)
 			{
 				printf("Could not set threshold parameter on edge detect shader\n");
+			}
+		}
+		const MString colorBleed("colorBleed");
+		if (mEffectId == colorBleed)
+		{
+			status = mShaderInstance->setParameter("gAmount", 0.2f);
+			if (status != MStatus::kSuccess)
+			{
+				printf("Could not set amount parameter on color bleed shader\n");
 			}
 		}
 	}

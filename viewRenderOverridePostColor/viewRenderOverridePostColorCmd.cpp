@@ -7,7 +7,7 @@
 #include "viewRenderOverridePostColorCmd.h"
 #include "viewRenderOverridePostColor.h"
 
-viewRenderOverridePostColorCmd::viewRenderOverridePostColorCmd(): fishEye(true), swirl(false), edgeDetect(true)
+viewRenderOverridePostColorCmd::viewRenderOverridePostColorCmd(): edgeDetect(true), colorBleed(true)
 {
 }
 
@@ -23,9 +23,10 @@ void* viewRenderOverridePostColorCmd::creator()
 MSyntax viewRenderOverridePostColorCmd::newSyntax()
 {
 	MSyntax syntax;
-	syntax.addFlag(kSwirlFlag, kSwirlFlagLong, MSyntax::kBoolean);
-	syntax.addFlag(kFishEyeFlag, kFishEyeFlagLong, MSyntax::kBoolean);
+	//syntax.addFlag(kSwirlFlag, kSwirlFlagLong, MSyntax::kBoolean);
+
 	syntax.addFlag(kEdgeDetectFlag, kEdgeDetectFlagLong, MSyntax::kBoolean);
+	syntax.addFlag(kColorBleedFlag, kColorBleedFlagLong, MSyntax::kBoolean);
 
 	syntax.enableQuery(true);
 
@@ -59,30 +60,20 @@ MStatus	viewRenderOverridePostColorCmd::doIt( const MArgList& args )
 
 	bool isQuery = argData.isQuery();
 
-	if (argData.isFlagSet(kSwirlFlag))
-	{
-        int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kSwirlPassName);
-        if(isQuery)
-		{
-			MPxCommand::setResult(postColorOverride->mOperations[index]->enabled());
-		}
-		else
-		{
-			argData.getFlagArgument(kSwirlFlag, 0, swirl);
-			postColorOverride->mOperations[index]->setEnabled(swirl);
-		}
-	}
-	if (argData.isFlagSet(kFishEyeFlag))
-	{
-        int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kFishEyePassName);
-		if(isQuery)
-			MPxCommand::setResult(postColorOverride->mOperations[index]->enabled());
-		else
-		{
-			argData.getFlagArgument(kFishEyeFlag, 0, fishEye);
-			postColorOverride->mOperations[index]->setEnabled(fishEye);
-		}
-	}
+	//if (argData.isFlagSet(kSwirlFlag))
+	//{
+ //       int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kSwirlPassName);
+ //       if(isQuery)
+	//	{
+	//		MPxCommand::setResult(postColorOverride->mOperations[index]->enabled());
+	//	}
+	//	else
+	//	{
+	//		argData.getFlagArgument(kSwirlFlag, 0, swirl);
+	//		postColorOverride->mOperations[index]->setEnabled(swirl);
+	//	}
+	//}
+
 	if (argData.isFlagSet(kEdgeDetectFlag))
 	{
         int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kEdgeDetectPassName);
@@ -92,6 +83,18 @@ MStatus	viewRenderOverridePostColorCmd::doIt( const MArgList& args )
 		{
 			argData.getFlagArgument(kEdgeDetectFlag, 0, edgeDetect);
             postColorOverride->mOperations[index]->setEnabled(edgeDetect);
+		}
+	}
+
+	if (argData.isFlagSet(kColorBleedFlag))
+	{
+	       int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kColorBleedPassName);
+		if(isQuery)
+			MPxCommand::setResult(postColorOverride->mOperations[index]->enabled());
+		else
+		{
+			argData.getFlagArgument(kColorBleedFlag, 0, colorBleed);
+			postColorOverride->mOperations[index]->setEnabled(colorBleed);
 		}
 	}
 

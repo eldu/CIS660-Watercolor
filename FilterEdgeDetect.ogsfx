@@ -76,7 +76,6 @@ GLSLShader PS_FilterEdgeDetect
 
 	void main()
 	{	
-            
         // Connie's 560 hw
         
         /*

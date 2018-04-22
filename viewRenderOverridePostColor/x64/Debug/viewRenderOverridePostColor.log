@@ -1,7 +1,3 @@
-﻿  viewRenderOverridePostColorCmd.cpp
-  viewRenderOverridePostColor.cpp
-  viewRenderOverridePostColorMain.cpp
-  Generating Code...
-     Creating library x64\Debug\viewRenderOverridePostColor.lib and object x64\Debug\viewRenderOverridePostColor.exp
+﻿  viewRenderOverridePostColor.cpp
   viewRenderOverridePostColor.vcxproj -> C:\Users\Ellen\Desktop\CIS660-WatercolorMaya\viewRenderOverridePostColor\x64\Debug\viewRenderOverridePostColor.mll
   viewRenderOverridePostColor.vcxproj -> x64\Debug\viewRenderOverridePostColor.pdb (Full PDB)

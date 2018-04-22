@@ -4,11 +4,14 @@
 	Command arguments and command name
 */
 
-#define kSwirlFlag		"-s"
-#define kSwirlFlagLong	"-swirl"
+//#define kSwirlFlag		"-s"
+//#define kSwirlFlagLong	"-swirl"
+//
+//#define kFishEyeFlag		"-fe"
+//#define kFishEyeFlagLong	"-fishEye"
 
-#define kFishEyeFlag		"-fe"
-#define kFishEyeFlagLong	"-fishEye"
+#define kColorBleedFlag     "-cb"
+#define kColorBleedFlagLong "-colorBleed"
 
 #define kEdgeDetectFlag		"-ed"
 #define kEdgeDetectFlagLong	"-edgeDetect"
@@ -28,7 +31,8 @@ public:
 	static MSyntax	newSyntax();
 	static void*	creator();
 private:
-	bool			fishEye;
-	bool			swirl;
+	//bool			fishEye;
+	//bool			swirl;
+	bool            colorBleed;
 	bool			edgeDetect;
 };
