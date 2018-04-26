@@ -4,6 +4,7 @@
 #include <maya/MFnPlugin.h>
 #include "viewRenderOverridePostColor.h"
 #include "viewRenderOverridePostColorCmd.h"
+#include <maya/MGlobal.h>
 
 #undef ENABLE_TRACE_API_CALLS
 //#define ENABLE_TRACE_API_CALLS 1
@@ -24,7 +25,7 @@ MStatus initializePlugin( MObject obj )
 	if (renderer)
 	{
 		// We register with a given name
-		ColorPostProcessOverride *overridePtr = new ColorPostProcessOverride("ColorPostProcessOverride");
+		ColorPostProcessOverride *overridePtr = new ColorPostProcessOverride("ColorPostProcessOverride", plugin.loadPath());
 		if (overridePtr)
 		{
 			renderer->registerOverride(overridePtr);
@@ -35,6 +36,7 @@ MStatus initializePlugin( MObject obj )
 										  viewRenderOverridePostColorCmd::newSyntax);
 	}
 
+	MGlobal::executeCommand("source \"" + plugin.loadPath() + "/paintAttr.mel\"");
 
 
 	return status;

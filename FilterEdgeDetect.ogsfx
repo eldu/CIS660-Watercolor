@@ -24,6 +24,18 @@ uniform sampler2D gInputSamp = sampler_state
     //MipFilter = Point;
 };
 
+// The single filter input, i.e. the image to be filtered.
+uniform texture2D gSourceTex : InputTexture;
+
+// Filter input sampler.
+uniform sampler2D gSourceSamp = sampler_state
+{
+    Texture = <gSourceTex>;
+    //MinFilter = Point;
+    //MagFilter = Point;
+    //MipFilter = Point;
+};
+
 // The edge thickness.
 uniform float gThickness = 1.5f;
 
@@ -144,6 +156,8 @@ GLSLShader PS_FilterEdgeDetect
         colorOut.g = pow(textureColor.g, max + 1);
         colorOut.b = pow(textureColor.b, max + 1);
         colorOut.a = 1;
+        
+        colorOut = texture2D(gSourceSamp, pixelPosition).rgba;
 	}
 }
 

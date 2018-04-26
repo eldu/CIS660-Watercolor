@@ -8,9 +8,10 @@
 #include "viewRenderOverridePostColor.h"
 #include <maya/MShaderManager.h>
 
-const MString ColorPostProcessOverride::kSwirlPassName = "ColorPostProcessOverride_Swirl";
-const MString ColorPostProcessOverride::kFishEyePassName = "ColorPostProcessOverride_FishEye";
+//const MString ColorPostProcessOverride::kSwirlPassName = "ColorPostProcessOverride_Swirl";
+//const MString ColorPostProcessOverride::kFishEyePassName = "ColorPostProcessOverride_FishEye";
 const MString ColorPostProcessOverride::kEdgeDetectPassName = "ColorPostProcessOverride_EdgeDetect";
+const MString ColorPostProcessOverride::kAttributePassName = "ColorPostProcessOverride_Attribute";
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -34,9 +35,9 @@ const MString ColorPostProcessOverride::kEdgeDetectPassName = "ColorPostProcessO
 // This override has fairly simple logic to render a scene, perform
 // 2d post color operations, and then present the final results
 //
-ColorPostProcessOverride::ColorPostProcessOverride( const MString & name )
+ColorPostProcessOverride::ColorPostProcessOverride( const MString & name , const MString &filepath)
 : MRenderOverride( name )
-, mUIName("Color Post")
+, mUIName("Color Post"), mFilepath(filepath)
 {
     MHWRender::MRenderer *theRenderer = MHWRender::MRenderer::theRenderer();
     if (!theRenderer)
@@ -45,16 +46,34 @@ ColorPostProcessOverride::ColorPostProcessOverride( const MString & name )
     // Create a new set of operations as required
     MHWRender::MRenderer::theRenderer()->getStandardViewportOperations(mOperations);
 
-    PostQuadRender* swirlOp = new PostQuadRender( kSwirlPassName, "FilterSwirl", "" );
-    PostQuadRender* fishEyeOp = new PostQuadRender( kFishEyePassName, "FilterFishEye", "" );
-    PostQuadRender* edgeDetectOp = new PostQuadRender( kEdgeDetectPassName, "FilterEdgeDetect", "" );
+    PostQuadRender* edgeDetectOp = new PostQuadRender( kEdgeDetectPassName, "FilterEdgeDetect", "", mTargets );
+	sceneRenderMRT* attributeOp = new sceneRenderMRT(kAttributePassName);
+	//PostQuadRender* attributeOp = new PostQuadRender(kAttributePassName, "AttributePass", "");
 
-    swirlOp->setEnabled(false); // swirl is disabled by default
-	fishEyeOp->setEnabled(false);
+	/*
+	unsigned int sampleCount = 1; // no multi-sampling, 16-bit floating point target
+	MHWRender::MRasterFormat colorFormat = MHWRender::kR16G16B16A16_FLOAT; 
 
-    mOperations.insertAfter(MHWRender::MRenderOperation::kStandardSceneName, swirlOp);
-    mOperations.insertAfter(kSwirlPassName, fishEyeOp);
-    mOperations.insertAfter(kFishEyePassName, edgeDetectOp);
+	mTargetDescriptions =
+		new MHWRender::MRenderTargetDescription("Attributes", 256, 256, sampleCount, colorFormat, 0, false);
+
+	const MHWRender::MRenderTargetManager* targetManager = theRenderer->getRenderTargetManager();
+	mTargets = targetManager->acquireRenderTarget(*(mTargetDescriptions)); 
+
+
+	//attributeOp->useViewportRect(true); 
+	attributeOp->setRenderTargets(mTargets);
+
+	MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+	const MHWRender::MShaderManager* shaderMgr = renderer->getShaderManager();
+	MHWRender::MShaderInstance* shaderInstance1 = shaderMgr->getEffectsFileShader("AttributePass", "");
+	attributeOp->setShader(shaderInstance1);
+	*/
+
+    //mOperations.insertAfter(MHWRender::MRenderOperation::kStandardSceneName, attributeOp);
+	//mOperations.insertAfter(kAttributePassName, edgeDetectOp);
+
+	mOperations.insertAfter(MHWRender::MRenderOperation::kStandardSceneName, edgeDetectOp);
 }
 
 
@@ -92,11 +111,12 @@ MStatus ColorPostProcessOverride::cleanup()
 // Instances of this class are used to provide different
 // shaders to be applied to a full screen quad.
 //
-PostQuadRender::PostQuadRender(const MString &name, const MString &id, const MString &technique)
+PostQuadRender::PostQuadRender(const MString &name, const MString &id, const MString &technique, MHWRender::MRenderTarget* input2)
 	: MQuadRender( name )
 	, mShaderInstance(NULL)
     , mEffectId(id)
     , mEffectIdTechnique(technique)
+	, prePass(input2)
 {
     // Declare the required input targets
     mInputTargetNames.clear();
@@ -188,6 +208,13 @@ PostQuadRender::shader()
 			{
 				printf("Could not set threshold parameter on edge detect shader\n");
 			}
+
+			if (prePass) {
+
+				MHWRender::MRenderTargetAssignment assignment2;
+				assignment2.target = prePass;
+				mShaderInstance->setParameter("gSourceTex", assignment2);
+			}
 		}
 	}
 
@@ -232,3 +259,75 @@ PostQuadRender::clearOperation()
 	mClearOperation.setMask( (unsigned int) MHWRender::MClearOperation::kClearNone );
 	return mClearOperation;
 }
+
+
+// Scene render
+sceneRenderMRT ::sceneRenderMRT (const MString& name)
+: MSceneRender(name)
+{
+	float val[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	mClearOperation.setClearColor(val);
+	mTargets = NULL;
+	mShaderInstance = NULL;
+	mViewRectangle[0] = 0.1f;
+	mViewRectangle[1] = 0.1f;
+	mViewRectangle[2] = 0.8f;
+	mViewRectangle[3] = 0.8f;
+	mUseViewportRect = false;
+}
+
+sceneRenderMRT ::~sceneRenderMRT ()
+{
+	mTargets = NULL;
+	mShaderInstance = NULL;
+}
+
+/* virtual */
+MHWRender::MRenderTarget* const*
+sceneRenderMRT::targetOverrideList(unsigned int &listSize)
+{
+	if (mTargets)
+	{
+		listSize = 1;
+		return &mTargets;
+	}
+	return NULL;
+}
+
+/* virtual */
+MHWRender::MClearOperation &
+sceneRenderMRT::clearOperation()
+{
+	mClearOperation.setMask( (unsigned int)
+		( MHWRender::MClearOperation::kClearDepth | MHWRender::MClearOperation::kClearStencil ) );
+	return mClearOperation;
+}
+
+
+/* virtual */
+const MHWRender::MShaderInstance* sceneRenderMRT::shaderOverride()
+{
+	return mShaderInstance;
+}
+
+/* virtual */
+// We only care about the opaque objects
+MHWRender::MSceneRender::MSceneFilterOption sceneRenderMRT::renderFilterOverride()
+{
+	return MHWRender::MSceneRender::kRenderOpaqueShadedItems;
+}
+
+void
+sceneRenderMRT::setRenderTargets(MHWRender::MRenderTarget *targets)
+{
+	mTargets = targets;
+}
+
+const MFloatPoint * 
+sceneRenderMRT::viewportRectangleOverride()
+{
+	if (mUseViewportRect)
+		return &mViewRectangle;
+	return NULL;
+}
+

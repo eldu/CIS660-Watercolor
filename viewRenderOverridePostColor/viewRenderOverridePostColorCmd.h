@@ -4,12 +4,6 @@
 	Command arguments and command name
 */
 
-#define kSwirlFlag		"-s"
-#define kSwirlFlagLong	"-swirl"
-
-#define kFishEyeFlag		"-fe"
-#define kFishEyeFlagLong	"-fishEye"
-
 #define kEdgeDetectFlag		"-ed"
 #define kEdgeDetectFlagLong	"-edgeDetect"
 

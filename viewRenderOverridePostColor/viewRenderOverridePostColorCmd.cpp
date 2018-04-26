@@ -23,8 +23,6 @@ void* viewRenderOverridePostColorCmd::creator()
 MSyntax viewRenderOverridePostColorCmd::newSyntax()
 {
 	MSyntax syntax;
-	syntax.addFlag(kSwirlFlag, kSwirlFlagLong, MSyntax::kBoolean);
-	syntax.addFlag(kFishEyeFlag, kFishEyeFlagLong, MSyntax::kBoolean);
 	syntax.addFlag(kEdgeDetectFlag, kEdgeDetectFlagLong, MSyntax::kBoolean);
 
 	syntax.enableQuery(true);
@@ -59,6 +57,7 @@ MStatus	viewRenderOverridePostColorCmd::doIt( const MArgList& args )
 
 	bool isQuery = argData.isQuery();
 
+	/*
 	if (argData.isFlagSet(kSwirlFlag))
 	{
         int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kSwirlPassName);
@@ -83,6 +82,7 @@ MStatus	viewRenderOverridePostColorCmd::doIt( const MArgList& args )
 			postColorOverride->mOperations[index]->setEnabled(fishEye);
 		}
 	}
+	*/
 	if (argData.isFlagSet(kEdgeDetectFlag))
 	{
         int index = postColorOverride->mOperations.indexOf(ColorPostProcessOverride::kEdgeDetectPassName);
