@@ -302,6 +302,7 @@ void main()
     LightDir = gLamp0Dir;
     
     VSUV = UV;
+    VSUV[1] = 1.f - VSUV[1];
     
     
     vec3 Nw = normalize((gWorldITXf * vec4(Normal,0.0)).xyz);
