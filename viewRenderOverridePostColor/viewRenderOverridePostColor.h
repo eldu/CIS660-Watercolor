@@ -28,24 +28,23 @@
 // 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-/* 
-     Class to handle color post process override filters
+/*
+Class to handle color post process override filters
 */
 class ColorPostProcessOverride : public MHWRender::MRenderOverride
 {
 public:
-    // operation names
-    //static const MString kSwirlPassName;
-    //static const MString kFishEyePassName;
-    static const MString kEdgeDetectPassName;
-	static const MString kAttributePassName;
+	// operation names
+	static const MString kSwirlPassName;
+	static const MString kFishEyePassName;
+	static const MString kEdgeDetectPassName;
 
-	ColorPostProcessOverride( const MString & name , const MString & filepath);
+	ColorPostProcessOverride(const MString & name);
 	virtual ~ColorPostProcessOverride();
 	virtual MHWRender::DrawAPI supportedDrawAPIs() const;
 
 	// Basic setup and cleanup
-	virtual MStatus setup( const MString & destination );
+	virtual MStatus setup(const MString & destination);
 	virtual MStatus cleanup();
 
 	// UI name
@@ -53,18 +52,13 @@ public:
 	{
 		return mUIName;
 	}
-	
+
 protected:
 
 	// UI name 
 	MString mUIName;
 
-	MString mFilepath;
-
 	friend class viewRenderOverridePostColorCmd;
-
-	MHWRender::MRenderTarget* mTargets;
-	MHWRender::MRenderTargetDescription* mTargetDescriptions;
 };
 
 //
@@ -73,52 +67,20 @@ protected:
 class PostQuadRender : public MHWRender::MQuadRender
 {
 public:
-
-	PostQuadRender(const MString &name, const MString &id, const MString &technique, MHWRender::MRenderTarget* input2 = NULL);
+	PostQuadRender(const MString &name, const MString &id, const MString &technique);
 	~PostQuadRender();
 
 	virtual const MHWRender::MShaderInstance * shader();
-    virtual MHWRender::MClearOperation & clearOperation();
+	virtual MHWRender::MClearOperation & clearOperation();
 
-    virtual int writableTargets(unsigned int& count);
-    virtual bool getInputTargetDescription(const MString& name, MHWRender::MRenderTargetDescription& description);
+	virtual int writableTargets(unsigned int& count);
+	virtual bool getInputTargetDescription(const MString& name, MHWRender::MRenderTargetDescription& description);
 
 protected:
 
 	MHWRender::MShaderInstance *mShaderInstance;
 	MString mEffectId;
 	MString mEffectIdTechnique;
-	MHWRender::MRenderTarget* prePass;
-};
-
-// Scene render to output to targets
-class sceneRenderMRT : public MHWRender::MSceneRender
-{
-public:
-	sceneRenderMRT(const MString &name);
-	virtual ~sceneRenderMRT();
-
-	virtual MHWRender::MRenderTarget* const* targetOverrideList(unsigned int &listSize);
-	virtual MHWRender::MClearOperation & clearOperation();
-	virtual const MHWRender::MShaderInstance* shaderOverride();
-	virtual MHWRender::MSceneRender::MSceneFilterOption renderFilterOverride();
-
-	void setRenderTargets(MHWRender::MRenderTarget *targets);
-	void setShader(MHWRender::MShaderInstance *shader)
-	{
-		mShaderInstance = shader;
-	}
-	void useViewportRect(bool val)
-	{
-		mUseViewportRect = val;
-	}
-	const MFloatPoint * viewportRectangleOverride();
-
-protected:
-	MHWRender::MRenderTarget *mTargets;
-	MHWRender::MShaderInstance *mShaderInstance;
-	MFloatPoint mViewRectangle;
-	bool mUseViewportRect;
 };
 
 #endif

@@ -25,7 +25,7 @@ MStatus initializePlugin( MObject obj )
 	if (renderer)
 	{
 		// We register with a given name
-		ColorPostProcessOverride *overridePtr = new ColorPostProcessOverride("ColorPostProcessOverride", plugin.loadPath());
+		ColorPostProcessOverride *overridePtr = new ColorPostProcessOverride("ColorPostProcessOverride");// , plugin.loadPath());
 		if (overridePtr)
 		{
 			renderer->registerOverride(overridePtr);
@@ -39,7 +39,7 @@ MStatus initializePlugin( MObject obj )
 	MGlobal::executeCommand("source \"" + plugin.loadPath() + "/paintAttr.mel\"");
 
 
-	return status;
+	return status; 
 }
 
 MStatus uninitializePlugin( MObject obj )

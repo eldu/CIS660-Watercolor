@@ -157,7 +157,7 @@ GLSLShader PS_FilterEdgeDetect
         colorOut.b = pow(textureColor.b, max + 1);
         colorOut.a = 1;
         
-        colorOut = texture2D(gSourceSamp, pixelPosition).rgba;
+        //colorOut = texture2D(gSourceSamp, pixelPosition).rgba;
 	}
 }
 
