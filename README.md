@@ -22,5 +22,19 @@
 * Browse -> Find the "viewRenderOverridePostColor.mll" in ".\viewRenderOverridePostColor\x64\Debug" or Release
 4. In the viewport's menu "Renderer" -> Enable Color Post. This option will only be seen after you load in the plug-in.
 
+### (Optional) Using Paint Attributes for Turbulence Values
+1. Make sure the post-processing plugin is loaded.
+2. Select the object that you want to paint on.
+3. Click the "Watercolor" menu at the top of the screen.
+4. Click "Add Paint Attributes." The object should now have a paintable attribute.
+5. Open Maya's Paint Attribute Tool Settings.
+* Modify -> Paint Attributes Tool checkbox
+6. Set the attribute to the paintable attribute.
+* Paint Attributes -> (shape name).paintAttr
+7. Use the paint tool to color the desired values.
+8. When done, export as an image.
+* Attribute Maps -> Export
+9. Load the image in the Watercolor object shader in the turbulence texture, and check on "Use Texture Turbulence."
+
 ## References
 Montesdeoca, S., Seah, H., Rall, H. and Benvenuti, D. 2017. Art-directed watercolor stylization of 3D animations in real-time. *Computers & Graphics* 65, 60-72.
